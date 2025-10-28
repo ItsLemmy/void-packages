@@ -1,0 +1,25 @@
+pkgname=vesktop
+version=1.6.0
+revision=1
+archs="x86_64"
+maintainer="Wizzard <rich@bandaholics.cash>"
+short_desc="Vesktop"
+homepage="https://github.com/Vencord/Vesktop"
+license="LicenseType"
+distfiles="https://github.com/Vencord/Vesktop/releases/download/v${version}/vesktop_${version}_amd64.deb"
+checksum=3af17d0fe0e59ac6f4672c1e877688d90f294772ea42727e1ea2820aceee2f73
+hostmakedepends="tar xz"
+
+do_extract() {
+    ar x ${XBPS_SRCDISTDIR}/${pkgname}-${version}/vesktop_${version}_amd64.deb
+    tar xf data.tar.xz -C ${wrksrc}
+}
+
+do_install() {
+    vmkdir /usr/share
+    vmkdir /opt/Vesktop
+
+    # Copy the files and directories
+    vcopy usr/share/* /usr/share/
+    vcopy opt/Vesktop/* /opt/Vesktop/
+}
