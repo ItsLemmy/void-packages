@@ -1,0 +1,81 @@
+pkgname=linux-cachyos-headers
+version=6.17.5
+revision=1
+wrksrc="linux-${version}"
+build_style=gnu-makefile
+hostmakedepends="bc perl flex bison tar kmod rsync"
+makedepends="elfutils-devel pahole python3 rust rust-bindgen rust-src xz zstd openssl-devel"
+depends="linux-cachyos>=${version}"
+short_desc="CachyOS kernel - development files for building external modules"
+maintainer="Ly-sec <itslysec@gmail.com>"
+license="GPL-2.0-or-later"
+homepage="https://github.com/CachyOS/linux-cachyos"
+distfiles="
+  https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${version}.tar.xz
+  https://raw.githubusercontent.com/CachyOS/linux-cachyos/master/linux-cachyos/config>cachyos.config
+  https://github.com/CachyOS/kernel-patches/raw/master/6.17/all/0001-cachyos-base-all.patch
+  https://github.com/CachyOS/kernel-patches/raw/master/6.17/sched/0001-bore-cachy.patch
+"
+checksum="
+c05faf36e9c2164be723cf6ada8533788804d48f9dd2fe1be2ccee3616a92bce
+e917c7598dc25f1630e01797499cadc735388c667d451687a673e8581e589262
+6d2d78f8315dbcdc71e40720d3ab8bb3cb8030a3f391f628569c26b363c0fa05
+5b4eaf36b22c383bdbed2887f8bc7047b9e66c3bb3477b24323bdafe88236310
+"
+skip_extraction="cachyos.config 0001-cachyos-base-all.patch 0001-bore-cachy.patch"
+
+do_configure() {
+    patch -Np1 < ${XBPS_SRCDISTDIR}/${pkgname%-headers}-${version}/0001-cachyos-base-all.patch
+    patch -Np1 < ${XBPS_SRCDISTDIR}/${pkgname%-headers}-${version}/0001-bore-cachy.patch
+    cp ${XBPS_SRCDISTDIR}/${pkgname%-headers}-${version}/cachyos.config .config
+    # Set EXTRAVERSION to -cachyos
+    vsed -i -e 's/^EXTRAVERSION =.*/EXTRAVERSION = -cachyos/' Makefile
+    make ARCH=x86_64 olddefconfig
+}
+
+do_build() {
+    # Only prepare the build system, don't compile the full kernel
+    make ARCH=x86_64 ${makejobs} prepare
+    make ARCH=x86_64 ${makejobs} scripts
+}
+
+do_install() {
+    local kernver=$(make -s kernelrelease)
+    local hdrsdir="usr/src/kernel-headers-${kernver}"
+    
+    # Install kernel build headers
+    install -Dm644 Makefile ${DESTDIR}/${hdrsdir}/Makefile
+    install -Dm644 kernel/Makefile ${DESTDIR}/${hdrsdir}/kernel/Makefile
+    install -Dm644 .config ${DESTDIR}/${hdrsdir}/.config
+    
+    # Install Module.symvers only if it exists
+    if [ -f Module.symvers ]; then
+        install -Dm644 Module.symvers ${DESTDIR}/${hdrsdir}/Module.symvers
+    fi
+    
+    for file in $(find . -name Makefile\* -o -name Kconfig\* -o -name \*.pl); do
+        install -Dm644 ${file} ${DESTDIR}/${hdrsdir}/${file}
+    done
+    
+    cp -a include ${DESTDIR}/${hdrsdir}/
+    mkdir -p ${DESTDIR}/${hdrsdir}/arch/x86
+    cp -a arch/x86/include ${DESTDIR}/${hdrsdir}/arch/x86/
+    install -Dm644 arch/x86/Makefile ${DESTDIR}/${hdrsdir}/arch/x86/Makefile
+    
+    if [ -f arch/x86/kernel/asm-offsets.s ]; then
+        install -Dm644 arch/x86/kernel/asm-offsets.s ${DESTDIR}/${hdrsdir}/arch/x86/kernel/asm-offsets.s
+    fi
+    
+    cp -a scripts ${DESTDIR}/${hdrsdir}/
+    find ${DESTDIR}/${hdrsdir} -type f -name '*.sh' -exec chmod +x {} \;
+    
+    for arch in alpha arc arm arm64 csky hexagon ia64 loongarch m68k microblaze mips nios2 openrisc parisc powerpc riscv s390 sh sparc um xtensa; do
+        rm -rf ${DESTDIR}/${hdrsdir}/arch/${arch}
+    done
+    
+    find ${DESTDIR}/${hdrsdir} -name '*.o' -o -name '*.cmd' | xargs rm -f
+    
+    # Create build symlink
+    vmkdir usr/lib/modules/${kernver}
+    ln -sf /usr/src/kernel-headers-${kernver} ${DESTDIR}/usr/lib/modules/${kernver}/build
+}
