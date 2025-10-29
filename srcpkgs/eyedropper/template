@@ -1,0 +1,15 @@
+# Template file for 'eyedropper'
+pkgname=eyedropper
+version=2.0.1
+revision=1
+build_style=meson
+build_helper=rust
+hostmakedepends="cargo pkg-config blueprint-compiler desktop-file-utils gettext"
+makedepends="gtk4-devel libadwaita-devel rust-std"
+short_desc="Pick and format colors"
+maintainer="Your Name <your.email@example.com>"
+license="GPL-3.0-or-later"
+homepage="https://github.com/FineFindus/eyedropper"
+changelog="https://github.com/FineFindus/eyedropper/releases"
+distfiles="https://github.com/FineFindus/eyedropper/releases/download/v${version}/eyedropper-${version}.tar.xz"
+checksum=f661fd6734580473f5a942476431a37d51752c9a4ea8d7397bc4c210b881a66c
