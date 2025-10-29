@@ -1,25 +1,45 @@
+# Template file for 'vesktop'
 pkgname=vesktop
-version=1.6.0
+version=1.6.1
 revision=1
-archs="x86_64"
-maintainer="Wizzard <rich@bandaholics.cash>"
-short_desc="Vesktop"
+hostmakedepends="nodejs pnpm"
+makedepends="alsa-lib gtk+3 nss"
+depends="alsa-lib gtk+3 nss"
+short_desc="Standalone Electron-based Discord client with Vencord & improved Linux support"
+maintainer="Ly-sec <itslysec@gmail.com>"
+license="GPL-3.0-only"
 homepage="https://github.com/Vencord/Vesktop"
-license="LicenseType"
-distfiles="https://github.com/Vencord/Vesktop/releases/download/v${version}/vesktop_${version}_amd64.deb"
-checksum=3af17d0fe0e59ac6f4672c1e877688d90f294772ea42727e1ea2820aceee2f73
-hostmakedepends="tar xz"
+distfiles="https://github.com/Vencord/Vesktop/archive/v${version}.tar.gz"
+checksum=ba103cf8a9edef31eb78c1bc3d76e40151f84ff02b2da8fd2bc21a954841b523
 
-do_extract() {
-    ar x ${XBPS_SRCDISTDIR}/${pkgname}-${version}/vesktop_${version}_amd64.deb
-    tar xf data.tar.xz -C ${wrksrc}
+do_build() {
+    pnpm install --frozen-lockfile
+    pnpm package:dir
 }
 
 do_install() {
-    vmkdir /usr/share
-    vmkdir /opt/Vesktop
-
-    # Copy the files and directories
-    vcopy usr/share/* /usr/share/
-    vcopy opt/Vesktop/* /opt/Vesktop/
+    vinstall LICENSE 644 usr/share/licenses/${pkgname}
+    vinstall build/icon.svg 644 usr/share/icons/hicolor/scalable/apps ${pkgname}.svg
+    vmkdir usr/lib/${pkgname}
+    cp -r dist/linux-unpacked/* ${DESTDIR}/usr/lib/${pkgname}/
+    
+    # Desktop entry
+    vmkdir usr/share/applications
+    cat > ${DESTDIR}/usr/share/applications/${pkgname}.desktop <<EOF
+[Desktop Entry]
+Name=Vesktop
+Exec=/usr/bin/vesktop
+Icon=vesktop
+Type=Application
+Categories=Network;Chat;
+StartupNotify=true
+EOF
+    
+    # Launcher script
+    vmkdir usr/bin
+    cat > ${DESTDIR}/usr/bin/vesktop <<'EOF'
+#!/bin/sh
+exec /usr/lib/vesktop/vesktop --enable-features=WaylandWindowDecorations --ozone-platform-hint=auto "$@"
+EOF
+    chmod 755 ${DESTDIR}/usr/bin/vesktop
 }
