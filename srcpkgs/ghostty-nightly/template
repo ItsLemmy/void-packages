@@ -1,0 +1,65 @@
+# Template for building Ghostty on Void Linux
+
+pkgname=ghostty-nightly
+version=1.3.0.dev
+revision=1
+maintainer="youremail@example.com"
+short_desc="Fast and feature-rich terminal emulator that uses GPU acceleration (nightly build)"
+license="MIT"
+homepage="https://ghostty.org/"
+
+_zig_version=0.15.2
+
+# Dependencies that are required to build and run the package
+makedepends="gtk4-devel gtk4-layer-shell-devel libadwaita-devel pkg-config gettext"
+hostmakedepends="curl tar xz"
+
+do_extract() {
+    local srcdir="${XBPS_SRCDISTDIR}/${pkgname}-${version}"
+    
+    # Create source directory if it doesn't exist
+    mkdir -p "${srcdir}"
+    
+    # Download Ghostty source if not already present
+    if [ ! -f "${srcdir}/ghostty-source.tar.gz" ]; then
+        msg_normal "Downloading Ghostty source...\n"
+        cd "${srcdir}"
+        curl -L "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
+            -o ghostty-source.tar.gz || msg_error "Failed to download Ghostty source\n"
+    fi
+    
+    # Download Zig if not already present
+    if [ ! -f "${srcdir}/zig-x86_64-linux-${_zig_version}.tar.xz" ]; then
+        msg_normal "Downloading Zig ${_zig_version}...\n"
+        cd "${srcdir}"
+        curl -L "https://ziglang.org/download/${_zig_version}/zig-x86_64-linux-${_zig_version}.tar.xz" \
+            -o zig-x86_64-linux-${_zig_version}.tar.xz || msg_error "Failed to download Zig\n"
+    fi
+    
+    # Create and enter work directory
+    mkdir -p ${wrksrc}
+    cd ${wrksrc}
+    
+    # Extract Ghostty source
+    msg_normal "Extracting Ghostty source...\n"
+    tar -xf "${srcdir}/ghostty-source.tar.gz" --strip-components=1
+    
+    # Extract Zig
+    msg_normal "Extracting Zig...\n"
+    tar -xf "${srcdir}/zig-x86_64-linux-${_zig_version}.tar.xz"
+}
+
+do_build() {
+    # Set the Zig binary in the PATH
+    export PATH=${wrksrc}/zig-x86_64-linux-${_zig_version}:$PATH
+    
+    cd ${wrksrc}
+    
+    # Run the build using Zig with PIE enabled
+    zig build -Doptimize=ReleaseFast -Dpie=true
+}
+
+do_install() {
+    # Install the compiled binary
+    vinstall zig-out/bin/ghostty 755 usr/bin
+}
