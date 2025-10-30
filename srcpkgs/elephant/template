@@ -20,7 +20,7 @@ do_build() {
     cd ${wrksrc}
 
     # Build providers as plugins
-    local providers="calc clipboard desktopapplications menus providerlist"
+    local providers="bluetooth calc clipboard desktopapplications files menus nirisessions providerlist runner snippets symbols todo unicode websearch windows"
     for provider in ${providers}; do
         cd internal/providers/${provider}
         go build -buildvcs=false -buildmode=plugin -trimpath -o ${provider}.so
@@ -34,7 +34,7 @@ do_install() {
 
     # Install providers
     vmkdir etc/xdg/elephant/providers
-    local providers="calc clipboard desktopapplications menus providerlist"
+    local providers="bluetooth calc clipboard desktopapplications files menus nirisessions providerlist runner snippets symbols todo unicode websearch windows"
     for provider in ${providers}; do
         vinstall internal/providers/${provider}/${provider}.so 755 etc/xdg/elephant/providers
     done
