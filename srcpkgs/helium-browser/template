@@ -1,0 +1,72 @@
+# Template file for 'helium-browser'
+pkgname=helium-browser
+version=0.5.8.1
+revision=1
+archs="x86_64"
+create_wrksrc=yes
+hostmakedepends="tar xz"
+short_desc="Private, fast, and honest Chromium-based web browser"
+maintainer="ItsLemmy <studio@quadbyte.net>"
+license="GPL-3.0-or-later"
+homepage="https://helium.computer"
+changelog="https://github.com/imputnet/helium-linux/releases"
+distfiles="https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64_linux.tar.xz"
+checksum=b0e464446600ebf42eeafe8c03e516ae8fb377f6d7883dc0a16e0f80350f5923
+repository=nonfree
+restricted=yes
+
+do_install() {
+	# Create the installation directory
+	vmkdir opt/helium-browser
+	
+	# Extract and copy all files to /opt/helium-browser
+	tar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/helium-${version}-x86_64_linux.tar.xz \
+		-C ${DESTDIR}/opt/helium-browser --strip-components=1
+	
+	# Create a wrapper script for /usr/bin/helium-browser
+	vmkdir usr/bin
+	cat > ${DESTDIR}/usr/bin/helium-browser <<'EOF'
+#!/bin/sh
+exec /opt/helium-browser/chrome "$@"
+EOF
+	chmod +x ${DESTDIR}/usr/bin/helium-browser
+	
+	# Install the desktop entry with modifications
+	vmkdir usr/share/applications
+	
+	# Create a custom desktop entry with helium-browser naming
+	cat > ${DESTDIR}/usr/share/applications/helium-browser.desktop <<'EOF'
+[Desktop Entry]
+Version=1.0
+Name=Helium Browser
+GenericName=Web Browser
+Comment=Private, fast, and honest web browser
+Exec=/usr/bin/helium-browser %U
+Terminal=false
+Icon=helium-browser
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+StartupNotify=true
+StartupWMClass=helium-browser
+EOF
+	
+	# Install icons
+	for size in 16 24 32 48 64 128 256; do
+		if [ -f ${DESTDIR}/opt/helium-browser/product_logo_${size}.png ]; then
+			vmkdir usr/share/icons/hicolor/${size}x${size}/apps
+			cp ${DESTDIR}/opt/helium-browser/product_logo_${size}.png \
+				${DESTDIR}/usr/share/icons/hicolor/${size}x${size}/apps/helium-browser.png
+		fi
+	done
+	
+	# Remove the chromium-devel.desktop file if it exists
+	if [ -f ${DESTDIR}/opt/helium-browser/chromium-devel.desktop ]; then
+		rm ${DESTDIR}/opt/helium-browser/chromium-devel.desktop
+	fi
+	
+	# Create a symlink for chrome-wrapper if needed
+	if [ -f ${DESTDIR}/opt/helium-browser/chrome-wrapper ]; then
+		ln -sf /opt/helium-browser/chrome-wrapper ${DESTDIR}/opt/helium-browser/helium-browser-wrapper
+	fi
+}
