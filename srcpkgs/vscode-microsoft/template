@@ -10,7 +10,7 @@ maintainer="ItsLemmy <studio@quadbyte.net>"
 license="custom:Microsoft"
 homepage="https://code.visualstudio.com/"
 distfiles="https://code.visualstudio.com/sha/download?build=stable&os=linux-x64>vscode-${version}.tar.gz"
-checksum=SKIP
+checksum=32a650f1a111df00354ad9571f57d12268376777677dd5af2162ead921067a89
 repository=nonfree
 restricted=yes
 nopie=yes
