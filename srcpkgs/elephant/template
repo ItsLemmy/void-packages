@@ -1,22 +1,43 @@
 # Template file for 'elephant'
 pkgname=elephant
-version=2.7.2
+version=2.9.1
 revision=1
-build_wrksrc="cmd/elephant"
-hostmakedepends="go"
+hostmakedepends="go pkg-config"
+makedepends="wayland-devel"
+depends="wl-clipboard libqalculate qalculate"
 short_desc="General purpose datasource and executor"
 maintainer="ItsLemmy <studio@quadbyte.net>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/abenz1267/elephant"
 distfiles="${homepage}/archive/refs/tags/v${version}.tar.gz"
-checksum=54ed8a3043e26c671c34e9bb312d6b91835571845a4c47a76d083c4f5c9d5edc
+checksum=54faa9fc77e04993fe3f70ca1aad2cdee8f7362ce12a803cbd9c5da236318ad4
 nopie=yes
 
 do_build() {
+    # Build main elephant binary
+    cd cmd/elephant
     go build -buildvcs=false -o elephant -trimpath
+    cd ${wrksrc}
+
+    # Build providers as plugins
+    local providers="calc clipboard desktopapplications menus providerlist"
+    for provider in ${providers}; do
+        cd internal/providers/${provider}
+        go build -buildvcs=false -buildmode=plugin -trimpath -o ${provider}.so
+        cd ${wrksrc}
+    done
 }
 
 do_install() {
-    vbin elephant
-    vlicense ${wrksrc}/LICENSE
+    # Install main binary
+    vbin cmd/elephant/elephant
+
+    # Install providers
+    vmkdir etc/xdg/elephant/providers
+    local providers="calc clipboard desktopapplications menus providerlist"
+    for provider in ${providers}; do
+        vinstall internal/providers/${provider}/${provider}.so 755 etc/xdg/elephant/providers
+    done
+
+    vlicense LICENSE
 }

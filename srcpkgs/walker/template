@@ -1,16 +1,16 @@
 pkgname=walker
-version=2.7.0
+version=2.7.3
 revision=1
 build_style=cargo
 hostmakedepends="cargo pkg-config gobject-introspection protobuf"
 makedepends="gtk4-layer-shell-devel poppler-glib-devel cairo-devel"
-depends="elephant elephant-desktopapplications elephant-providerlist elephant-clipboard elephant-calc elephant-menus"
+depends="elephant"
 short_desc="Wayland application runner"
 maintainer="ItsLemmy <studio@quadbyte.net>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/abenz1267/walker"
 distfiles="${homepage}/archive/refs/tags/v${version}.tar.gz"
-checksum=7df842aa627951882fe596b4161c632ed3d5b9f020ea92551b20f810d6e3a317
+checksum=cca48effc467b73c3fc34dbf6c34cb84c2fb7a3aba8b1838756189619fd2e021
 
 post_install() {
     # Install license
