@@ -1,0 +1,25 @@
+pkgname=lefthook
+version=2.0.1
+revision=1
+hostmakedepends="go git"
+maintainer="Ly-sec <itslysec@gmail.com>"
+short_desc="Git hooks manager"
+homepage="https://github.com/evilmartians/lefthook"
+license="MIT"
+
+build_style=go
+go_import_path="github.com/evilmartians/lefthook"
+
+sources="git+https://github.com/evilmartians/lefthook.git"
+git_tag="v${version}"
+checksums="SKIP"
+
+do_build() {
+    export GO111MODULE=on
+    go install "github.com/evilmartians/lefthook/v2@v${version}"
+}
+
+do_install() {
+    # Go installs the binary into $GOPATH/bin
+    install -Dm755 "$GOPATH/bin/lefthook" "$DESTDIR/usr/bin/lefthook"
+}
