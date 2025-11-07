@@ -1,6 +1,6 @@
 # Template file for 'elephant'
 pkgname=elephant
-version=2.10.0
+version=2.14.3
 revision=1
 hostmakedepends="go pkg-config"
 makedepends="wayland-devel"
@@ -10,7 +10,7 @@ maintainer="ItsLemmy <studio@quadbyte.net>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/abenz1267/elephant"
 distfiles="${homepage}/archive/refs/tags/v${version}.tar.gz"
-checksum=e3cdd5c02c358c1805a2de24b781e99c5d4fac0106744a2585929a2fa1012d63
+checksum=9201a52063f45d918a6362b08730f439d0e922445b86fb5dc9cc742e9a50046d
 nopie=yes
 
 do_build() {
