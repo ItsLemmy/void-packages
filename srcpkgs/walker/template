@@ -1,5 +1,5 @@
 pkgname=walker
-version=2.9.3
+version=2.10.0
 revision=1
 build_style=cargo
 hostmakedepends="cargo pkg-config gobject-introspection protobuf"
@@ -10,7 +10,7 @@ maintainer="ItsLemmy <studio@quadbyte.net>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/abenz1267/walker"
 distfiles="${homepage}/archive/refs/tags/v${version}.tar.gz"
-checksum=e980fe3bb3ab52712a1d91d4c9d7d63c3c0d1783c88022a173cb82f499017f44
+checksum=83c8274df0c1c5f0ddb62bc4b30bbb45aacbda34eb3be8e2250e4d901c6ddb27
 
 post_install() {
     # Install license
