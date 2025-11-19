@@ -1,6 +1,6 @@
 # Template file for 'helium-browser'
 pkgname=helium-browser
-version=0.6.5.1
+version=0.6.7.1
 revision=1
 archs="x86_64"
 create_wrksrc=yes
@@ -11,7 +11,7 @@ license="GPL-3.0-or-later"
 homepage="https://helium.computer"
 changelog="https://github.com/imputnet/helium-linux/releases"
 distfiles="https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64_linux.tar.xz"
-checksum=8696f599768c2765d3371af8f6d1b3993a29c2e054badd4e95d26c42453cfb59
+checksum=541db5f2f398ffdb48f7b621c7630d94d3dbe3a8c91effc5a98f7ab496a89011
 repository=nonfree
 restricted=yes
 
