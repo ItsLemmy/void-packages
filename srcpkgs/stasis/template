@@ -1,0 +1,19 @@
+# Template file for 'stasis'
+pkgname=stasis
+version=0.6.2
+revision=1
+build_style=cargo
+hostmakedepends="pkg-config"
+makedepends="wayland-devel"
+short_desc="Lightweight, feature rich Wayland idle manager written in Rust"
+maintainer="lemmy <lemmy@void>"
+license="MIT"
+homepage="https://github.com/saltnpepper97/stasis"
+changelog="https://raw.githubusercontent.com/saltnpepper97/stasis/main/CHANGELOG.md"
+distfiles="https://github.com/saltnpepper97/stasis/archive/refs/tags/v${version}.tar.gz"
+checksum=26a22251aedfb50f9f6ca742739215b6b4dfd1633d86f24f9ffb442ab285d0c6
+# NOTE: rune-cfg dependency requires rust 1.89+
+
+post_install() {
+	vlicense LICENSE
+}
