@@ -1,0 +1,19 @@
+# Template file for 'xwayland-satellite-git'
+pkgname=xwayland-satellite-git
+version=0.7
+revision=1
+_gitrev=f379ff5722a821212eb59ada9cf8e51cb3654aad
+_pkgname=xwayland-satellite
+build_style=cargo
+hostmakedepends="pkg-config clang"
+makedepends="xcb-util-cursor-devel"
+depends="xorg-server-xwayland"
+conflicts="xwayland-satellite>=0"
+provides="xwayland-satellite-${version}_${revision}"
+short_desc="Xwayland outside your Wayland (git version)"
+maintainer="Your Name <your.email@example.com>"
+license="MPL-2.0"
+homepage="https://github.com/Supreeeme/xwayland-satellite"
+distfiles="https://github.com/Supreeeme/xwayland-satellite/archive/${_gitrev}.tar.gz"
+checksum=a62f3eae978a304fe801abbc0e931b325eafad975cb23643635b808aa002cb4c
+wrksrc="${_pkgname}-${_gitrev}"
