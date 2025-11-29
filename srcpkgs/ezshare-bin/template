@@ -1,0 +1,22 @@
+# Template file for 'ezshare-bin'
+pkgname=ezshare-bin
+version=2.0.0
+revision=1
+archs="x86_64"
+depends="glibc"
+short_desc="Easily share files, folders and clipboard over LAN"
+maintainer="Rafael Dominiquini <rafaeldominiquini@gmail.com>"
+license="MIT"
+homepage="https://github.com/mifi/ezshare"
+distfiles="https://github.com/mifi/ezshare/releases/download/v${version}/ezshare-linux-x64-${version}.zip"
+checksum=fd3028c5af914cabd56f269b737a65e67bba79f6d507aa004d054affd997f915
+nopie=yes
+wrksrc="ezshare-linux-x64"
+
+do_install() {
+	vmkdir usr/lib/ezshare
+	vcopy "*" usr/lib/ezshare
+	vmkdir usr/bin
+	ln -sf /usr/lib/ezshare/ezshare "${DESTDIR}/usr/bin/ezshare"
+	vlicense LICENSE
+}
