@@ -1,8 +1,8 @@
 # Template file for 'mangowc-git'
 pkgname=mangowc-git
-version=0.10.5
+version=0.10.6
 revision=1
-_gitrev=4280f8e0bf8d8dc06e79a4a444a2c42221cf18ff
+_gitrev=2f9cabe4b23cb91ebda707b27df12fe30ddeb86e
 build_style=meson
 configure_args="-Dwerror=false"
 hostmakedepends="pkg-config wayland-devel"
@@ -14,7 +14,7 @@ maintainer="Your Name <your.email@example.com>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/DreamMaoMao/mangowc"
 distfiles="https://github.com/DreamMaoMao/mangowc/archive/${_gitrev}.tar.gz"
-checksum=83d939464390e08dfa69f7d302b30dac8875fbe4f7556565be7fee260229693f
+checksum=a39abdc4bdd165ff76caad9d396e35d7150d0141c86a5927955cc9fb0b4307c7
 wrksrc="mangowc-${_gitrev}"
 
 post_install() {
