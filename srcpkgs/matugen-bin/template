@@ -8,7 +8,7 @@ license="GPL-2.0-or-later"
 arch="x86_64"
 
 distfiles="https://github.com/InioX/matugen/releases/download/v${version}/matugen-${version}-x86_64.tar.gz"
-checksum=fbb887631fe36770b55d06be44ca16959e542c02f5ca881263d2c26a16216405
+checksum=60d5014e4d4fdedc494d48f4136d338319ea34b37c254b27678e1e0fe994e8d5
 
 build() {
     return 0
