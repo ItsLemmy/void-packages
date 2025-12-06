@@ -1,17 +1,17 @@
 # Template file for 'helium-browser'
 pkgname=helium-browser
-version=0.6.7.1
+version=0.7.1.1
 revision=1
 archs="x86_64"
 create_wrksrc=yes
-hostmakedepends="tar xz"
+hostmakedepends="tar xz ImageMagick"
 short_desc="Private, fast, and honest Chromium-based web browser"
 maintainer="ItsLemmy <studio@quadbyte.net>"
 license="GPL-3.0-or-later"
 homepage="https://helium.computer"
 changelog="https://github.com/imputnet/helium-linux/releases"
 distfiles="https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64_linux.tar.xz"
-checksum=541db5f2f398ffdb48f7b621c7630d94d3dbe3a8c91effc5a98f7ab496a89011
+checksum=f18cc1310c38719508d35ceba88f4f3db200f430bd73a7f13be9b281d04695fb
 repository=nonfree
 restricted=yes
 
@@ -43,20 +43,33 @@ GenericName=Web Browser
 Comment=Private, fast, and honest web browser
 Exec=/usr/bin/helium-browser %U
 Terminal=false
-Icon=helium-browser
+Icon=helium
 Type=Application
 Categories=Network;WebBrowser;
 MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
 StartupNotify=true
-StartupWMClass=helium-browser
+StartupWMClass=helium
 EOF
 	
 	# Install icons
+	# Install to pixmaps for compatibility with older applications
+	vmkdir usr/share/pixmaps
+	if [ -f ${DESTDIR}/opt/helium-browser/product_logo_256.png ]; then
+		cp ${DESTDIR}/opt/helium-browser/product_logo_256.png \
+			${DESTDIR}/usr/share/pixmaps/helium.png
+	fi
+
+	# Install to hicolor icon theme for modern desktop environments
 	for size in 16 24 32 48 64 128 256; do
+		vmkdir usr/share/icons/hicolor/${size}x${size}/apps
 		if [ -f ${DESTDIR}/opt/helium-browser/product_logo_${size}.png ]; then
-			vmkdir usr/share/icons/hicolor/${size}x${size}/apps
 			cp ${DESTDIR}/opt/helium-browser/product_logo_${size}.png \
-				${DESTDIR}/usr/share/icons/hicolor/${size}x${size}/apps/helium-browser.png
+				${DESTDIR}/usr/share/icons/hicolor/${size}x${size}/apps/helium.png
+		elif [ -f ${DESTDIR}/opt/helium-browser/product_logo_256.png ]; then
+			# Fallback: resize 256px version if specific size doesn't exist
+			convert ${DESTDIR}/opt/helium-browser/product_logo_256.png \
+				-resize ${size}x${size} \
+				${DESTDIR}/usr/share/icons/hicolor/${size}x${size}/apps/helium.png
 		fi
 	done
 	
