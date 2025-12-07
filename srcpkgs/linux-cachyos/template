@@ -1,29 +1,21 @@
 # Template file for 'linux-cachyos'
 pkgname=linux-cachyos
-version=6.17.8
+version=6.18.0
 revision=1
-short_desc="Linux kernel with CachyOS BORE scheduler patches and optimizations"
-maintainer="Ly-sec <itslysec@gmail.com>"
+short_desc="Linux CachyOS kernel and modules (${version%.*} series)"
+maintainer="ItsLemmy <studio@quadbyte.net>"
 license="GPL-2.0-only"
 homepage="https://github.com/CachyOS/linux-cachyos"
 
-_major="${version%.*}"
-_srcname="linux-${_major}"
-_patchsource="https://raw.githubusercontent.com/cachyos/kernel-patches/master/${_major}"
+# CachyOS patchset version
+_patchver=6.18
 
-distfiles="https://cdn.kernel.org/pub/linux/kernel/v${version%%.*}.x/${_srcname}.tar.xz
- https://cdn.kernel.org/pub/linux/kernel/v${version%%.*}.x/patch-${version}.xz
- ${_patchsource}/all/0001-cachyos-base-all.patch
- ${_patchsource}/sched/0001-bore-cachy.patch"
-checksum="9b607166a1c999d8326098121222feb080a20a3253975fcdfa2de96ba7f757a7
- 961c2551d1c2def9db7e4380155c0a2075211ac24ef38ac88cade9cc51be2a38
- cc2b9d95a75cdd08cdc1616258351a2e1f09057c7dde071214d3edea00cae312544c1a267558690a27da296e1f5a0729dcab4b413c0b59dee0fcbeffd877e5fc
- c7294a689f70b2a44b0c4e9f00c61dbd59dd7063ecbe18655c4e7f12e21ed7c5bb4f5169f5aa8623b1c59de7b2667facb024913ecb9f4c650dabce4e8a7e5452"
-skip_extraction="patch-${version}.xz"
+distfiles="${KERNEL_SITE}/kernel/v${version%%.*}.x/linux-${version%.*}.tar.xz"
+checksum=9106a4605da9e31ff17659d958782b815f9591ab308d03b0ee21aad6c7dced4b
 
 python_version=3
 
-# x86_64 only for now due to CachyOS config
+# x86_64 only - CachyOS optimizations are x86_64 specific
 archs="x86_64*"
 
 nodebug=yes  # -dbg package is generated below manually
@@ -33,10 +25,9 @@ noshlibprovides=yes
 preserve=yes
 
 hostmakedepends="tar xz bc elfutils-devel flex gmp-devel kmod libmpc-devel
- pkg-config openssl-devel perl cpio pahole python3 zstd clang llvm lld"
-makedepends="openssl-devel elfutils-devel"
+ pkg-config openssl-devel perl uboot-mkimage cpio pahole python3 zstd"
 
-_kernver="${version}-cachyos_${revision}"
+_kernver="${version}_${revision}"
 triggers="kernel-hooks"
 kernel_hooks_version="${_kernver}"
 
@@ -55,28 +46,34 @@ mutable_files="
 
 # reproducible build
 export KBUILD_BUILD_TIMESTAMP=$(LC_ALL=C date -ud @${SOURCE_DATE_EPOCH:-0})
-export KBUILD_BUILD_USER=cachyos
+export KBUILD_BUILD_USER=voidlinux
 export KBUILD_BUILD_HOST=voidlinux
 
-post_extract() {
-	cd "${wrksrc}"
+if [ "$CROSS_BUILD" ]; then
+	_cross="CROSS_COMPILE=${XBPS_CROSS_TRIPLET}-"
+fi
 
-	# Apply point release patch
-	if [ -f ${XBPS_SRCDISTDIR}/${pkgname}-${version}/patch-${version}.xz ]; then
-		msg_normal "Applying point release patch...\n"
-		xzcat ${XBPS_SRCDISTDIR}/${pkgname}-${version}/patch-${version}.xz | patch -sNp1 -F0
+post_extract() {
+	# Apply CachyOS base patch
+	if [ -f ${FILESDIR}/0001-cachyos-base-all.patch ]; then
+		msg_normal "Applying CachyOS base patchset...\n"
+		patch -sNp1 -F0 < ${FILESDIR}/0001-cachyos-base-all.patch
+	fi
+
+	# Apply BORE scheduler patch
+	if [ -f ${FILESDIR}/0001-bore-cachy.patch ]; then
+		msg_normal "Applying BORE scheduler patch...\n"
+		patch -sNp1 -F0 < ${FILESDIR}/0001-bore-cachy.patch
 	fi
 }
 
 post_patch() {
-	cd "${wrksrc}"
+	# avoid the strip wrapper, its used to copy the objects to a new location
+	# and required to avoid absolute relocations.
+	vsed -e "s|\$(STRIP) \(--strip-debug -o \$@ \$<;\)|/usr/bin/${STRIP} \1|" -i drivers/firmware/efi/libstub/Makefile
 
-	# Apply CachyOS patches
-	msg_normal "Applying CachyOS base patches...\n"
-	patch -Np1 < "${XBPS_SRCDISTDIR}/${pkgname}-${version}/0001-cachyos-base-all.patch"
-
-	msg_normal "Applying BORE scheduler patch...\n"
-	patch -Np1 < "${XBPS_SRCDISTDIR}/${pkgname}-${version}/0001-bore-cachy.patch"
+	# parallel pahole crashes on i686, do one job for now
+	vsed -i "s/\(\$(pahole-flags-y)\)/\1 --jobs=1/" -i scripts/Makefile.btf
 }
 
 do_configure() {
@@ -86,56 +83,18 @@ do_configure() {
 		x86_64*) arch=x86_64;;
 	esac
 
-	# Use CachyOS config from files directory
-	if [ -f ${FILESDIR}/${arch}-dotconfig ]; then
-		msg_normal "Using CachyOS .config for ${arch}...\n"
+	if [ -f ${FILESDIR}/${arch}-dotconfig-custom ]; then
+		msg_normal "Detected a custom .config file for your arch, using it.\n"
+		cp -f ${FILESDIR}/${arch}-dotconfig-custom .config
+		make ${makejobs} ARCH=$arch ${_cross} oldconfig
+	elif [ -f ${FILESDIR}/${arch}-dotconfig ]; then
+		msg_normal "Detected a .config file for your arch, using it.\n"
 		cp -f ${FILESDIR}/${arch}-dotconfig .config
-	else
-		msg_error "No CachyOS config found for ${arch}!\n"
+		make ${makejobs} ARCH=$arch ${_cross} oldconfig
 	fi
-
-	# Set version
-	echo "-cachyos" > localversion.10-pkgrel
-	echo "" > localversion.20-pkgname
-
-	# Enable CachyOS options
-	scripts/config -e CACHY
-
-	# Enable BORE scheduler
-	scripts/config -e SCHED_BORE
-
-	# Enable LTO with Clang Thin-LTO
-	scripts/config -e LTO_CLANG_THIN
-
-	# Set tick rate to 1000Hz
-	scripts/config -d HZ_300 -e HZ_1000 --set-val HZ 1000
-
-	# Full tickless
-	scripts/config -d HZ_PERIODIC -d NO_HZ_IDLE -d CONTEXT_TRACKING_FORCE \
-		-e NO_HZ_FULL_NODEF -e NO_HZ_FULL -e NO_HZ -e NO_HZ_COMMON -e CONTEXT_TRACKING
-
-	# Full preemption (low-latency)
-	scripts/config -e PREEMPT_DYNAMIC -e PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE
-
-	# Enable O3 optimization
-	scripts/config -d CC_OPTIMIZE_FOR_PERFORMANCE -e CC_OPTIMIZE_FOR_PERFORMANCE_O3
-
-	# Transparent Hugepages always
-	scripts/config -d TRANSPARENT_HUGEPAGE_MADVISE -e TRANSPARENT_HUGEPAGE_ALWAYS
-
-	# Enable USER_NS
-	scripts/config -e USER_NS
-
-	# Use native CPU optimizations
-	scripts/config -d GENERIC_CPU -d MZEN4 -e X86_NATIVE_CPU
 
 	# Always use our revision to CONFIG_LOCALVERSION to match our pkg version.
 	sed -i -e "s|^\(CONFIG_LOCALVERSION=\).*|\1\"_${revision}\"|" .config
-
-	# Prepare config
-	make ${makejobs} ARCH=$arch \
-		CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 \
-		oldconfig
 }
 
 do_build() {
@@ -146,15 +105,8 @@ do_build() {
 	esac
 
 	export LDFLAGS=
-
-	# Build with Clang/LLVM
-	make ARCH=$arch \
-		CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 \
-		${makejobs} prepare
-
-	make ARCH=$arch \
-		CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 \
-		${makejobs} ${_args}
+	make ARCH=$arch ${_cross} ${makejobs} prepare
+	make ARCH=$arch ${_cross} ${makejobs} ${_args}
 }
 
 do_install() {
@@ -170,14 +122,13 @@ do_install() {
 	ln -sf usr/lib/ ${DESTDIR}
 
 	# Install kernel, firmware and modules
-	make ${makejobs} ARCH=${subarch} \
-		CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 \
-		INSTALL_MOD_PATH=${DESTDIR} modules_install
+	make ${makejobs} ARCH=${subarch:-$arch} INSTALL_MOD_PATH=${DESTDIR} ${_cross} modules_install
 
 	hdrdest=${DESTDIR}/usr/src/kernel-headers-${_kernver}
 
 	vinstall .config 644 boot config-${_kernver}
 	vinstall System.map 644 boot System.map-${_kernver}
+
 	vinstall arch/x86/boot/bzImage 644 boot vmlinuz-${_kernver}
 
 	# Switch to /usr.
@@ -197,7 +148,7 @@ do_install() {
 		mkdir -p ${hdrdest}/$(dirname $file)
 		install -Dm644 $file ${hdrdest}/${file}
 	done
-	for file in $(find arch/${subarch} scripts -name module.lds -o -name Kbuild.platforms -o -name Platform); do
+	for file in $(find arch/${subarch:-$arch} scripts -name module.lds -o -name Kbuild.platforms -o -name Platform); do
 		mkdir -p ${hdrdest}/$(dirname $file)
 		install -Dm644 $file ${hdrdest}/${file}
 	done
@@ -218,6 +169,15 @@ do_install() {
 
 	# needed for mv-debug
 	cp scripts/sign-file "${XBPS_WRAPPERDIR}"
+
+	# Remove helper binaries built for host,
+	# if generated files from the scripts/ directory need to be included,
+	# they need to be copied to ${hdrdest} before this step
+	if [ "$CROSS_BUILD" ]; then
+		make ${makejobs} ARCH=${subarch:-$arch} ${_cross} _mrproper_scripts
+		# remove host specific objects as well
+		find scripts -name '*.o' -delete
+	fi
 
 	# Copy files necessary for later builds, like nvidia and vmware
 	cp Module.symvers ${hdrdest}
@@ -313,7 +273,6 @@ linux-cachyos-headers_package() {
 	nostrip=yes
 	noshlibprovides=yes
 	short_desc+=" - source headers for 3rd party modules"
-	depends="clang llvm lld"
 	pkg_install() {
 		vmove usr/src
 		vmove usr/lib/modules/${_kernver}/build
