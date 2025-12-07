@@ -1,14 +1,14 @@
 # Template for building Ghostty on Void Linux
 
-pkgname=ghostty-release
-version=1.2.3
+pkgname=ghostty-tip
+version=1.3.0
 revision=1
 maintainer="ItsLemmy <studio@quadbyte.net>"
 short_desc="Fast and feature-rich terminal emulator that uses GPU acceleration (release)"
 license="MIT"
 homepage="https://ghostty.org/"
 
-_zig_version=0.14.1
+_zig_version=0.15.2
 
 # Dependencies that are required to build and run the package
 makedepends="gtk4-devel gtk4-layer-shell-devel libadwaita-devel pkg-config gettext"
@@ -23,7 +23,7 @@ do_extract() {
     # Download Ghostty source if not already present
     msg_normal "Downloading Ghostty source...\n"
     cd "${srcdir}"
-    curl -L "https://github.com/ghostty-org/ghostty/archive/refs/tags/v${version}.tar.gz" \
+    curl -L "https://github.com/ghostty-org/ghostty/releases/download/tip/ghostty-source.tar.gz" \
         -o ghostty-source.tar.gz || msg_error "Failed to download Ghostty source\n"
     
     # Download Zig if not already present
@@ -48,13 +48,18 @@ do_extract() {
 }
 
 do_build() {
-    # Set the Zig binary in the PATH
-    export PATH=${wrksrc}/zig-x86_64-linux-${_zig_version}:$PATH
-    
+    local srcdir="${XBPS_SRCDISTDIR}/${pkgname}-${version}"
     cd ${wrksrc}
-    
+
+    # Extract Zig if not already present in wrksrc
+    if [ ! -d "zig-x86_64-linux-${_zig_version}" ]; then
+        msg_normal "Extracting Zig...\n"
+        tar -xf "${srcdir}/zig-x86_64-linux-${_zig_version}.tar.xz"
+    fi
+
     # Run the build using Zig with PIE enabled
-    zig build -Doptimize=ReleaseFast -Dpie=true
+    # -Demit-themes=false: Skip downloading iTerm2 color schemes (URL may be outdated)
+    ./zig-x86_64-linux-${_zig_version}/zig build -Doptimize=ReleaseFast -Dpie=true -Demit-themes=false
 }
 
 do_install() {
