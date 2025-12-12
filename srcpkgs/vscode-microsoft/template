@@ -1,6 +1,6 @@
 # Template file for 'vscode-microsoft'
 pkgname=vscode-microsoft
-version=1.106.3
+version=1.107.0
 revision=1
 archs="x86_64"
 hostmakedepends="tar curl"
@@ -10,7 +10,7 @@ maintainer="ItsLemmy <studio@quadbyte.net>"
 license="custom:Microsoft"
 homepage="https://code.visualstudio.com/"
 distfiles="https://code.visualstudio.com/sha/download?build=stable&os=linux-x64>vscode-${version}.tar.gz"
-checksum=57dbe7b9925a6b516205813a6e0818810403409877e0161f55198ce7678607ce
+checksum=9cf13545117c297dce550eb187795c608a6bdad1d6acbc8450daceb6e06cbdbd
 repository=nonfree
 restricted=yes
 nopie=yes
