@@ -66,11 +66,15 @@ do_install() {
     # Install the compiled binary
     vinstall zig-out/bin/ghostty 755 usr/bin
 
-    # Install desktop file
+    # Install desktop file and fix hardcoded build paths
     vinstall zig-out/share/applications/com.mitchellh.ghostty.desktop 644 usr/share/applications
+    vsed -i -e "s|${wrksrc}/zig-out/bin/ghostty|/usr/bin/ghostty|g" \
+        ${DESTDIR}/usr/share/applications/com.mitchellh.ghostty.desktop
 
-    # Install KDE servicemenu
+    # Install KDE servicemenu and fix hardcoded build paths
     vinstall zig-out/share/kio/servicemenus/com.mitchellh.ghostty.desktop 644 usr/share/kio/servicemenus
+    vsed -i -e "s|${wrksrc}/zig-out/bin/ghostty|/usr/bin/ghostty|g" \
+        ${DESTDIR}/usr/share/kio/servicemenus/com.mitchellh.ghostty.desktop
 
     # Install icons
     for size in 16 32 128 256 512 1024; do
