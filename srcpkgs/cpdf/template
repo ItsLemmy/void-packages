@@ -1,0 +1,29 @@
+# Template file for 'cpdf'
+pkgname=cpdf
+version=2.8.2
+revision=1
+archs="x86_64 i686 aarch64"
+nopie=yes
+short_desc="Command-line tool for manipulating PDF files"
+maintainer="ItsLemmy <studio@quadbyte.net>"
+license="AGPL-3.0-or-later"
+homepage="https://community.coherentpdf.com/"
+distfiles="https://github.com/coherentgraphics/cpdf-binaries/archive/refs/tags/v${version}.tar.gz"
+checksum=025a3cd04309bd2ce6502671736b6fd5adc1f5d0c5918a7f3d4df4047fd3b7ec
+
+do_install() {
+	case "$XBPS_TARGET_MACHINE" in
+		x86_64)
+			vinstall Linux-Intel-64bit/cpdf 755 usr/bin
+			;;
+		i686)
+			vinstall Linux-Intel-32bit/cpdf 755 usr/bin
+			;;
+		aarch64)
+			vinstall Linux-ARM-64bit/cpdf 755 usr/bin
+			;;
+	esac
+
+	vdoc cpdfmanual.pdf
+	vlicense LICENSE.md
+}
