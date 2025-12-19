@@ -1,8 +1,8 @@
 # Template file for 'xwayland-satellite-git'
 pkgname=xwayland-satellite-git
-version=0.7
+version=0.8
 revision=1
-_gitrev=f379ff5722a821212eb59ada9cf8e51cb3654aad
+_gitrev=979eab242e60cf481a31d9de508a1bdaf2dcf7d4
 _pkgname=xwayland-satellite
 build_style=cargo
 hostmakedepends="pkg-config clang"
@@ -15,5 +15,5 @@ maintainer="Your Name <your.email@example.com>"
 license="MPL-2.0"
 homepage="https://github.com/Supreeeme/xwayland-satellite"
 distfiles="https://github.com/Supreeeme/xwayland-satellite/archive/${_gitrev}.tar.gz"
-checksum=a62f3eae978a304fe801abbc0e931b325eafad975cb23643635b808aa002cb4c
+checksum=1a876d3517409c2f124254a1739324d50248064ebb7012965ee46d9c20e35207
 wrksrc="${_pkgname}-${_gitrev}"
